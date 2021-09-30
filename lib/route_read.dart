@@ -37,7 +37,7 @@ class _MangaReaderState extends State<MangaReader> {
 
   @override
   void initState() {
-    SystemChrome.setEnabledSystemUIOverlays([]);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky, overlays: []);
     if(UserConfig.getInt(UserConfig.ORIENTATION)== 1){
       SystemChrome.setPreferredOrientations([
         DeviceOrientation.portraitUp,
@@ -104,9 +104,11 @@ class _MangaReaderState extends State<MangaReader> {
     _switchImage(toast: false, page: 0);
 
     String msg= "Chap: "+ (_chapterIndex+ 1).toString() + " / " + _listChapter.length.toString();
-    _fToast.removeCustomToast();
-    _fToast.removeQueuedCustomToasts();
-    _fToast.showToast(child: WidgetHelper.simpleToastWidget(msg));
+    if(UserConfig.getBool(UserConfig.IS_SHOW_PAGE_INDEX)){
+      _fToast.removeCustomToast();
+      _fToast.removeQueuedCustomToasts();
+      _fToast.showToast(child: WidgetHelper.simpleToastWidget(msg));
+    }
   }
 
   void _switchImage({int? delta, int? page, bool toast= true}){
@@ -218,7 +220,7 @@ class _MangaReaderState extends State<MangaReader> {
   }
 
   void handlePostImageChange(bool toast) {
-    if(toast){
+    if(toast && UserConfig.getBool(UserConfig.IS_SHOW_PAGE_INDEX)){
       String msg= "Page: "+ (_imageIndex+ 1).toString() + " / " + _listImage.length.toString();
       _fToast.removeCustomToast();
       _fToast.removeQueuedCustomToasts();
@@ -250,188 +252,190 @@ class _MangaReaderState extends State<MangaReader> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Stack(
-        children: [
-          ValueListenableBuilder(
-            valueListenable: _imageChanged,
-            builder: (context, value, child) {
-              return Center(child: _imageInside);
-            },
-          ),
-          Row(
-            children: [
-              SizedBox(
-                width: 70,
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: (){
-                          _switchImage(delta: UserConfig.getBool(UserConfig.IS_READ_RIGHT_TO_LEFT) ?  1 : -1);
-                        },
-                        onLongPress: (){
-                          showDialog(
-                            context: context,
-                            builder: (lContext) {
-                              double fontSize= 15;
-                              ValueNotifier<int> jumpToIndex= ValueNotifier<int>(_imageIndex);
-                              Function(int) deltaChangeIndex= (delta){
-                                jumpToIndex.value+= delta;
-                                if(jumpToIndex.value >= _listImage.length || jumpToIndex.value < 0){
-                                  jumpToIndex.value= 0;
-                                }
-                              };
-                              return Align(
-                                alignment: Alignment.centerLeft,
-                                child: Container(
-                                  padding: EdgeInsets.only(left: 30, right: 30),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      WidgetHelper.getCommonButton(
-                                        "-100", (){deltaChangeIndex(-100);}, fontSize: fontSize),
-                                      WidgetHelper.getCommonButton(
-                                        "-10", (){deltaChangeIndex(-10);}, fontSize: fontSize),
-                                      WidgetHelper.getCommonButton(
-                                        "-1", (){deltaChangeIndex(-1);}, fontSize: fontSize),
-                                      ValueListenableBuilder(valueListenable: jumpToIndex, builder: (context, value, child) {
-                                        return WidgetHelper.getCommonButton(
-                                            "${(value as int)+ 1}/${_listImage.length}: ${FilePath.basename(_listImage[value].path)}", () {
-                                          _switchImage(page: value);
-                                          Navigator.pop(lContext);
-                                        }, highLight: true, fontSize: 15);
-                                      },),
-                                      WidgetHelper.getCommonButton(
-                                        "+1", (){deltaChangeIndex(1);}, fontSize: fontSize),
-                                      WidgetHelper.getCommonButton(
-                                        "+10", (){deltaChangeIndex(10);}, fontSize: fontSize),
-                                      WidgetHelper.getCommonButton(
-                                        "+100", (){deltaChangeIndex(100);}, fontSize: fontSize),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                    SizedBox(
-                      height: 70,
-                      child: GestureDetector(
-                        onTap: (){
-                          _switchChapter(delta: UserConfig.getBool(UserConfig.IS_READ_RIGHT_TO_LEFT) ?  1 : -1);
-                        },
-                        onLongPress: (){
-                          showDialog(
-                            context: context,
-                            builder: (lContext) {
-                              double fontSize= 15;
-                              ValueNotifier<int> jumpToIndex= ValueNotifier<int>(_chapterIndex);
-                              Function(int) deltaChangeIndex= (delta){
-                                jumpToIndex.value+= delta;
-                                if(jumpToIndex.value >= _listChapter.length || jumpToIndex.value < 0){
-                                  jumpToIndex.value= 0;
-                                }
-                              };
-                              return Align(
-                                alignment: Alignment.centerLeft,
-                                child: Container(
-                                  padding: EdgeInsets.only(left: 30, right: 30),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      WidgetHelper.getCommonButton(
+      home: SafeArea(
+        child: Stack(
+          children: [
+            ValueListenableBuilder(
+              valueListenable: _imageChanged,
+              builder: (context, value, child) {
+                return Center(child: _imageInside);
+              },
+            ),
+            Row(
+              children: [
+                SizedBox(
+                  width: 70,
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: (){
+                            _switchImage(delta: UserConfig.getBool(UserConfig.IS_READ_RIGHT_TO_LEFT) ?  1 : -1);
+                          },
+                          onLongPress: (){
+                            showDialog(
+                              context: context,
+                              builder: (lContext) {
+                                double fontSize= 24;
+                                ValueNotifier<int> jumpToIndex= ValueNotifier<int>(_imageIndex);
+                                Function(int) deltaChangeIndex= (delta){
+                                  jumpToIndex.value+= delta;
+                                  if(jumpToIndex.value >= _listImage.length || jumpToIndex.value < 0){
+                                    jumpToIndex.value= 0;
+                                  }
+                                };
+                                return Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Container(
+                                    padding: EdgeInsets.only(left: 30, right: 30),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        WidgetHelper.getCommonButton(
                                           "-100", (){deltaChangeIndex(-100);}, fontSize: fontSize),
-                                      WidgetHelper.getCommonButton(
+                                        WidgetHelper.getCommonButton(
                                           "-10", (){deltaChangeIndex(-10);}, fontSize: fontSize),
-                                      WidgetHelper.getCommonButton(
+                                        WidgetHelper.getCommonButton(
                                           "-1", (){deltaChangeIndex(-1);}, fontSize: fontSize),
-                                      ValueListenableBuilder(valueListenable: jumpToIndex, builder: (context, value, child) {
-                                        return WidgetHelper.getCommonButton(
-                                            "${(value as int)+ 1}/${_listChapter.length}: ${FilePath.basename(_listChapter[value].path)}", () {
-                                          _switchImage(page: value);
-                                          Navigator.pop(lContext);
-                                        }, highLight: true, fontSize: 15);
-                                      },),
-                                      WidgetHelper.getCommonButton(
+                                        ValueListenableBuilder(valueListenable: jumpToIndex, builder: (context, value, child) {
+                                          return WidgetHelper.getCommonButton(
+                                              "${(value as int)+ 1}/${_listImage.length}: ${FilePath.basename(_listImage[value].path)}", () {
+                                            _switchImage(page: value);
+                                            Navigator.pop(lContext);
+                                          }, highLight: true, fontSize: 15);
+                                        },),
+                                        WidgetHelper.getCommonButton(
                                           "+1", (){deltaChangeIndex(1);}, fontSize: fontSize),
-                                      WidgetHelper.getCommonButton(
+                                        WidgetHelper.getCommonButton(
                                           "+10", (){deltaChangeIndex(10);}, fontSize: fontSize),
-                                      WidgetHelper.getCommonButton(
+                                        WidgetHelper.getCommonButton(
                                           "+100", (){deltaChangeIndex(100);}, fontSize: fontSize),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
-                          );
-                        },
+                                );
+                              },
+                            );
+                          },
+                        ),
                       ),
-                    ),
-                  ],
+                      SizedBox(
+                        height: 70,
+                        child: GestureDetector(
+                          onTap: (){
+                            _switchChapter(delta: UserConfig.getBool(UserConfig.IS_READ_RIGHT_TO_LEFT) ?  1 : -1);
+                          },
+                          onLongPress: (){
+                            showDialog(
+                              context: context,
+                              builder: (lContext) {
+                                double fontSize= 15;
+                                ValueNotifier<int> jumpToIndex= ValueNotifier<int>(_chapterIndex);
+                                Function(int) deltaChangeIndex= (delta){
+                                  jumpToIndex.value+= delta;
+                                  if(jumpToIndex.value >= _listChapter.length || jumpToIndex.value < 0){
+                                    jumpToIndex.value= 0;
+                                  }
+                                };
+                                return Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Container(
+                                    padding: EdgeInsets.only(left: 30, right: 30),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        WidgetHelper.getCommonButton(
+                                            "-100", (){deltaChangeIndex(-100);}, fontSize: fontSize),
+                                        WidgetHelper.getCommonButton(
+                                            "-10", (){deltaChangeIndex(-10);}, fontSize: fontSize),
+                                        WidgetHelper.getCommonButton(
+                                            "-1", (){deltaChangeIndex(-1);}, fontSize: fontSize),
+                                        ValueListenableBuilder(valueListenable: jumpToIndex, builder: (context, value, child) {
+                                          return WidgetHelper.getCommonButton(
+                                              "${(value as int)+ 1}/${_listChapter.length}: ${FilePath.basename(_listChapter[value].path)}", () {
+                                            _switchImage(page: value);
+                                            Navigator.pop(lContext);
+                                          }, highLight: true, fontSize: 15);
+                                        },),
+                                        WidgetHelper.getCommonButton(
+                                            "+1", (){deltaChangeIndex(1);}, fontSize: fontSize),
+                                        WidgetHelper.getCommonButton(
+                                            "+10", (){deltaChangeIndex(10);}, fontSize: fontSize),
+                                        WidgetHelper.getCommonButton(
+                                            "+100", (){deltaChangeIndex(100);}, fontSize: fontSize),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Expanded(
-                child: Column(
-                  children: [
-                    Spacer(),
-                    SizedBox(
-                      height: 70,
-                      child: GestureDetector(
-                        onTap: (){
-                          ListManga.compact();
-                          if(_videoController!= null){
-                            _imageInside= Container();
-                            _imageChanged.value= !_imageChanged.value;
-                            Future.delayed(Duration(milliseconds: 100)).whenComplete(() {
-                              _videoController!.dispose().whenComplete(() {
-                                Navigator.pop(context);
+                Expanded(
+                  child: Column(
+                    children: [
+                      Spacer(),
+                      SizedBox(
+                        height: 70,
+                        child: GestureDetector(
+                          onTap: (){
+                            ListManga.compact();
+                            if(_videoController!= null){
+                              _imageInside= Container();
+                              _imageChanged.value= !_imageChanged.value;
+                              Future.delayed(Duration(milliseconds: 100)).whenComplete(() {
+                                _videoController!.dispose().whenComplete(() {
+                                  Navigator.pop(context);
+                                });
                               });
-                            });
-                          }else{
-                            Navigator.pop(context);
-                          }
-                        },
+                            }else{
+                              Navigator.pop(context);
+                            }
+                          },
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              SizedBox(
-                width: 70,
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: (){
-                          _switchImage(delta: UserConfig.getBool(UserConfig.IS_READ_RIGHT_TO_LEFT) ?  -1 : 1);
-                        },
-                        onLongPress: (){
-                          _switchImage(delta: UserConfig.getBool(UserConfig.IS_READ_RIGHT_TO_LEFT) ? -10 : 10);
-                        },
+                SizedBox(
+                  width: 70,
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: (){
+                            _switchImage(delta: UserConfig.getBool(UserConfig.IS_READ_RIGHT_TO_LEFT) ?  -1 : 1);
+                          },
+                          onLongPress: (){
+                            _switchImage(delta: UserConfig.getBool(UserConfig.IS_READ_RIGHT_TO_LEFT) ? -10 : 10);
+                          },
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      height: 70,
-                      child: GestureDetector(
-                        onTap: (){
-                          _switchChapter(delta: UserConfig.getBool(UserConfig.IS_READ_RIGHT_TO_LEFT) ?  -1 : 1);
-                        },
-                        onLongPress: (){
-                          _switchChapter(delta: UserConfig.getBool(UserConfig.IS_READ_RIGHT_TO_LEFT) ? -10 : 10);
-                        },
+                      SizedBox(
+                        height: 70,
+                        child: GestureDetector(
+                          onTap: (){
+                            _switchChapter(delta: UserConfig.getBool(UserConfig.IS_READ_RIGHT_TO_LEFT) ?  -1 : 1);
+                          },
+                          onLongPress: (){
+                            _switchChapter(delta: UserConfig.getBool(UserConfig.IS_READ_RIGHT_TO_LEFT) ? -10 : 10);
+                          },
+                        ),
                       ),
-                    ),
 
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

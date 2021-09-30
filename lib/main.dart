@@ -84,27 +84,26 @@ class _ConfigState extends State<Config> {
                           UserConfig.saveDouble(UserConfig.AUTO_DELAY, newValue);
                         }
                     ),
-                    Row(
-                      children: [
-                        Checkbox(
-                            value: UserConfig.getBool(UserConfig.IS_READ_RIGHT_TO_LEFT),
-                            onChanged: (value){
-                              UserConfig.saveBool(UserConfig.IS_READ_RIGHT_TO_LEFT, value);
-                            }
-                        ),
-                        WidgetHelper.simpleRichText("Read right to left?"),
-                      ],
+                    CheckboxListTile(
+                      value: UserConfig.getBool(UserConfig.IS_READ_RIGHT_TO_LEFT),
+                      onChanged: (value){
+                        UserConfig.saveBool(UserConfig.IS_READ_RIGHT_TO_LEFT, value);
+                      },
+                      title: WidgetHelper.simpleRichText("Read right to left?"),
                     ),
-                    Row(
-                      children: [
-                        Checkbox(
-                            value: UserConfig.getBool(UserConfig.IS_USE_BROWSER),
-                            onChanged: (value){
-                              UserConfig.saveBool(UserConfig.IS_USE_BROWSER, value);
-                            }
-                        ),
-                        WidgetHelper.simpleRichText("Use browser?"),
-                      ],
+                    CheckboxListTile(
+                      value: UserConfig.getBool(UserConfig.IS_USE_BROWSER),
+                      onChanged: (value){
+                        UserConfig.saveBool(UserConfig.IS_USE_BROWSER, value);
+                      },
+                      title: WidgetHelper.simpleRichText("Use browser?"),
+                    ),
+                    CheckboxListTile(
+                      value: UserConfig.getBool(UserConfig.IS_SHOW_PAGE_INDEX),
+                      onChanged: (value){
+                        UserConfig.saveBool(UserConfig.IS_SHOW_PAGE_INDEX, value);
+                      },
+                      title: WidgetHelper.simpleRichText("Toast index?"),
                     ),
                     Row(children: [
                       WidgetHelper.simpleRichText("Run mode: "),
@@ -252,7 +251,13 @@ class _ConfigState extends State<Config> {
                               readMode: UserConfig.getInt(UserConfig.RUN_MODE),
                             )),
                           ).whenComplete(() {
-                            SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
+                            SystemChrome.setEnabledSystemUIMode(
+                                SystemUiMode.manual,
+                                overlays: [
+                                  SystemUiOverlay.top,
+                                  SystemUiOverlay.bottom,
+                                ]
+                            );
                             SystemChrome.setPreferredOrientations([
                               DeviceOrientation.portraitUp,
                               DeviceOrientation.portraitDown,

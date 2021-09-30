@@ -263,6 +263,7 @@ class UserConfig{
   static const String LAST_LIST_MANGA_INDEX = "LAST_LIST_MANGA_INDEX";
   static const String IS_READ_RIGHT_TO_LEFT = "IS_READ_RIGHT_TO_LEFT";
   static const String IS_USE_BROWSER = "IS_USE_BROWSER";
+  static const String IS_SHOW_PAGE_INDEX = "IS_SHOW_PAGE_INDEX";
   static const String LAST_PROFILE_NAME = "LAST_PROFILE_NAME";
 
   static void _loadDefault(){
@@ -275,6 +276,7 @@ class UserConfig{
     userConfigBox.put(LAST_LIST_MANGA_INDEX, "0");
     userConfigBox.put(IS_READ_RIGHT_TO_LEFT, "0");
     userConfigBox.put(IS_USE_BROWSER, "0");
+    userConfigBox.put(IS_SHOW_PAGE_INDEX, "1");
     userConfigBox.put(LAST_PROFILE_NAME, "");
   }
 
